@@ -1,12 +1,14 @@
-import authentication
+from authentication import get_authenticated_service
 import json
 import urllib.request
+import os
 
-UNKNOWN_FACE_PATH = 'uncropped_face_images'
+IMAGE_PATH = 'images'
 
-def download_people_images():
+def download_images(images_queue):
     
-    service = authentication.get_authenticated_service()
+    image_id = 1
+    service = get_authenticated_service()
 
     with open('downloader_payload.json') as f:
         payload = json.loads(f.read())
@@ -20,7 +22,11 @@ def download_people_images():
             image_url = mediaItem['baseUrl']
             try:
                 # w16383-h16383 will ensure to download an image at the maximum size.  
-                urllib.request.urlretrieve(image_url + '=w16383-h16383', 'temp.jpg')
+                file_name = '{}.jpg'.format(image_id)
+                file_path = os.path.join(IMAGE_PATH, file_name)
+                images_queue.put(file_path)
+                urllib.request.urlretrieve(image_url + '=w16383-h16383', file_path)
+                image_id += 1
             except urllib.request.HTTPError as err:
                 print(err.code, 'error found.')
         if 'nextPageToken' not in media_list:
@@ -32,6 +38,3 @@ def download_people_images():
         payload['pageToken'] = nextPageToken
 
     print('finished downloading pictures')
-
-if __name__ == "__main__":
-    download_people_images()
