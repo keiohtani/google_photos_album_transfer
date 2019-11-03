@@ -3,6 +3,10 @@
 .google_photos_token.json
 pyvenv.cfg
 
+images
+temp.jpg
+
+.DS_Store
 __pycache__
 bin
 lib
