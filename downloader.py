@@ -1,4 +1,3 @@
-from face_recog import Face_Saver
 import authentication
 import json
 import urllib.request
@@ -12,8 +11,6 @@ def download_people_images():
     with open('downloader_payload.json') as f:
         payload = json.loads(f.read())
 
-    face_saver = Face_Saver()
-
     while True:
         media_list = service.mediaItems().search(body=payload).execute()
         if 'mediaItems' not in media_list:  # when no items are found
@@ -22,10 +19,10 @@ def download_people_images():
             # the size can be set by adding '=w2048-h1024' at the end of URL
             image_url = mediaItem['baseUrl']
             try:
-                urllib.request.urlretrieve(image_url + '=w3000', 'temp.jpg')
+                # w16383-h16383 will ensure to download an image at the maximum size.  
+                urllib.request.urlretrieve(image_url + '=w16383-h16383', 'temp.jpg')
             except urllib.request.HTTPError as err:
                 print(err.code, 'error found.')
-            face_saver.save_face_image('temp.jpg')
         if 'nextPageToken' not in media_list:
             break
 
@@ -34,7 +31,6 @@ def download_people_images():
         print(nextPageToken)
         payload['pageToken'] = nextPageToken
 
-    face_saver.save_photo_id()
     print('finished downloading pictures')
 
 if __name__ == "__main__":
