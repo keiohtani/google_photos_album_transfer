@@ -1,0 +1,8 @@
+# user defined
+.google_photos_client_secrets.json
+.google_photos_token.json
+pyvenv.cfg
+
+__pycache__
+bin
+lib

@@ -1,0 +1,9 @@
+{
+    "pageSize" : 100, 
+    "pageToken" : "",
+    "filters" : {
+        "mediaTypeFilter": {
+            "mediaTypes": ["PHOTO"]
+        }
+    }
+}
