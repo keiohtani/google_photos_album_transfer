@@ -6,32 +6,34 @@ import requests
 import sys
 
 
-CLIENT_SECRETS_FILE = '.downloader_google_photos_client_secrets.json'
-TOKEN_FILE = '.downloader_google_photos_token.json'
+CLIENT_SECRETS_FILE = '.uploader_google_photos_client_secrets.json'
+TOKEN_FILE = '.uploader_google_photos_token.json'
 API_TRY_MAX = 3
 
 service = get_authenticated_service(CLIENT_SECRETS_FILE, TOKEN_FILE)
 
 
-def upload_images(images_queue):
-    previous_album = ''
-    album_id = 0
-    sleep(30)
-    while True:
-        if not images_queue.empty():
-            sleep(10)
-            image_path = images_queue.get()
-            slash_index = image_path.find('/')
-            if slash_index == -1:
-                raise Exception('Slash is not included in the path')
-            current_album = image_path[0:slash_index]
-            if previous_album != current_album:
-                album_id = create_album(current_album)
-            upload_image(image_path, album_id)
+def upload_images(images_queues):
+    sleep(300)
+    print('Start uploading')
+    while not images_queues.empty():
+        sleep(10)
+        album_object = images_queues.get()
+        title = album_object['title']
+        images_queue = album_object['queue']
+        dir_path = album_object['dir_path']
+        album_id = create_album(title)
+        while not images_queue.empty():
+            file_name = images_queue.get()
+            image_path = os.path.join(dir_path, file_name)
+            upload_image(image_path, dir_path, file_name, album_id)
             os.remove(image_path)
+            print('uploaded', image_path)
+        print('Completed uploading an album', title)
+    print('Completed uploading')
 
 
-def upload_image(image_file, album_id):
+def upload_image(image_file, dir_path, file_name, album_id):
     """
     画像をアップロードし、アルバムに追加する
     """
@@ -39,12 +41,12 @@ def upload_image(image_file, album_id):
         try:
             # service object がアップロードに対応していないので、
             # ここでは requests を使用
-            with open(str(image_file), 'rb') as image_data:
+            with open(image_file, 'rb') as image_data:
                 url = 'https://photoslibrary.googleapis.com/v1/uploads'
                 headers = {
                     'Authorization': "Bearer " + service._http.request.credentials.access_token,
                     'Content-Type': 'application/octet-stream',
-                    'X-Goog-Upload-File-Name': image_file.name,
+                    'X-Goog-Upload-File-Name': file_name,
                     'X-Goog-Upload-Protocol': "raw",
                 }
                 response = requests.post(url, data=image_data, headers=headers)
@@ -69,20 +71,6 @@ def upload_image(image_file, album_id):
 
 
 def execute_service_api(service_api, service_name):
-    # 時々、エラーが発生することがあるのでリトライを行う
-    # リトライ実績
-    # <HttpError 500 when requesting https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate?alt=json returned "Internal error encountered.">
-    # <HttpError 503 when requesting https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate?alt=json returned "The service is currently unavailable.">
-    # <HttpError 400 when requesting https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate?alt=json returned "Request must contain a valid upload token.">
-    # <HttpError 400 when requesting https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate?alt=json returned "Invalid album ID."
-    # <HttpError 500 when requesting https://photoslibrary.googleapis.com/v1/albums?alt=json&pageSize=50&pageToken= returned "Internal error encountered.">
-    # <HttpError 503 when requesting https://photoslibrary.googleapis.com/v1/albums?alt=json&pageSize=50&pageToken= returned "The service is currently unavailable.">
-    # <HttpError 500 when requesting https://photoslibrary.googleapis.com/v1/albums?alt=json&pageToken=.....&pageSize=50 returned "Internal error encountered.">
-    # <HttpError 503 when requesting https://photoslibrary.googleapis.com/v1/albums?alt=json&pageSize=50&pageToken=..... returned "The service is currently unavailable.">
-    # リトライアウト実績
-    # ERROR:__main__:HTTPSConnectionPool(host='photoslibrary.googleapis.com', port=443): Max retries exceeded with url: /v1/uploads (Caused by SSLError(SSLError("bad handshake: SysCallError(104, 'ECONNRESET')",),))
-    # ERROR:__main__:service.mediaItems().batchCreate().execute() retry out
-    # ERROR:__main__:service.albums().list().execute() retry out
 
     for i in range(API_TRY_MAX):
         try:
@@ -100,7 +88,7 @@ def execute_service_api(service_api, service_name):
 def create_album(title):
     payload = {'album': {'title': title}}
     result = service.albums().create(body=payload).execute()
-    album_id = result.id
+    album_id = result['id']
     return album_id
 
 

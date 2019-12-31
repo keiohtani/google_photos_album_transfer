@@ -3,6 +3,7 @@ import json
 import urllib.request
 import os
 import re
+from queue import Queue
 
 ALBUM_PAGE_SIZE = 50
 IMAGE_PATH = 'images'
@@ -15,9 +16,9 @@ with open('downloader_payload.json') as f:
     payload = json.loads(f.read())
 
 
-def download_images(images_queue, payload=payload, dir_path=IMAGE_PATH):
+def download_images(images_queues, title, payload=payload, dir_path=IMAGE_PATH):
 
-    image_id = 10001
+    images_queue = Queue()
 
     while True:
 
@@ -32,13 +33,11 @@ def download_images(images_queue, payload=payload, dir_path=IMAGE_PATH):
 
             try:
                 # w16383-h16383 will ensure to download an image at the maximum size.
-                file_name = '{}.jpg'.format(str(image_id)[1:])
+                file_name = mediaItem['filename']
                 file_path = os.path.join(dir_path, file_name)
-                images_queue.put(file_path)
                 urllib.request.urlretrieve(
                     image_url + '=w16383-h16383', file_path)
-                image_id += 1
-
+                images_queue.put(file_name)
             except urllib.request.HTTPError as err:
                 print(err.code, 'error found.')
 
@@ -47,13 +46,19 @@ def download_images(images_queue, payload=payload, dir_path=IMAGE_PATH):
 
         print('next page')
         nextPageToken = media_list['nextPageToken']
-        print(nextPageToken)
         payload['pageToken'] = nextPageToken
 
-    print('finished downloading pictures')
+    album_object = {'title': title,
+                    'dir_path': dir_path, 'queue': images_queue}
+
+    images_queues.put(album_object)
+
+    print('completed downloading an album')
 
 
 def download_images_by_albums(images_queue):
+
+    print('start downloading')
 
     pageToken = ''
 
@@ -73,14 +78,13 @@ def download_images_by_albums(images_queue):
             album_id = album['id']
             payload['albumId'] = album_id
             payload['pageToken'] = ''
-            download_images(images_queue, payload, dir_path)
+            download_images(images_queue, title, payload, dir_path)
 
         if 'nextPageToken' not in album_list:
             break
 
         print('next page')
         nextPageToken = album_list['nextPageToken']
-        print(nextPageToken)
         pageToken = nextPageToken
 
     print('finished downloading pictures')
