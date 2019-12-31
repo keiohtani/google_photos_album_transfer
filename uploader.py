@@ -6,7 +6,7 @@ import requests
 import sys
 
 
-CLIENT_SECRETS_FILE = '.uploader_google_photos_client_secrets.json'
+CLIENT_SECRETS_FILE = '.google_photos_client_secrets.json'
 TOKEN_FILE = '.uploader_google_photos_token.json'
 API_TRY_MAX = 3
 
