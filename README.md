@@ -15,4 +15,4 @@
 
 - Start the app
 
-`python main.py
+`python main.py`
