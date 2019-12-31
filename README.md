@@ -37,3 +37,6 @@
 3. Your default browser will open up again for the access to the second Google account.
 
 4. Login to your Google account you want to transfer photos to. 
+
+## References
+- [Google Photos API を使用した画像の自動アップロード](https://qiita.com/inasawa/items/e5362dec4bd45d6900f7)
