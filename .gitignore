@@ -1,6 +1,8 @@
 # user defined
-.google_photos_client_secrets.json
-.google_photos_token.json
+.downloader_google_photos_client_secrets.json
+.downloader_google_photos_token.json
+.uploader_google_photos_client_secrets.json
+.uploader_google_photos_token.json
 pyvenv.cfg
 
 images

@@ -6,8 +6,10 @@ import re
 
 ALBUM_PAGE_SIZE = 50
 IMAGE_PATH = 'images'
+CLIENT_SECRETS_FILE = '.downloader_google_photos_client_secrets.json'
+TOKEN_FILE = '.downloader_google_photos_token.json'
 
-service = get_authenticated_service()
+service = get_authenticated_service(CLIENT_SECRETS_FILE, TOKEN_FILE)
 
 with open('downloader_payload.json') as f:
     payload = json.loads(f.read())
