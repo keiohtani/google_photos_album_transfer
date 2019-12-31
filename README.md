@@ -34,9 +34,13 @@
 
 2. Login to your Google account you want to transfer photos from. 
 
-3. Your default browser will open up again for the access to the second Google account.
+3. Click on "advanced" and then "Go to YOUR_APP_NAME (unsafe)".
 
-4. Login to your Google account you want to transfer photos to. 
+4. Your default browser will open up again for the access to the second Google account.
+
+5. Login to your Google account you want to transfer photos to. 
+
+6. Click on "advanced" and then "Go to YOUR_APP_NAME (unsafe)".
 
 ## References
 - [Google Photos API を使用した画像の自動アップロード](https://qiita.com/inasawa/items/e5362dec4bd45d6900f7)
