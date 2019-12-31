@@ -7,17 +7,18 @@ import re
 ALBUM_PAGE_SIZE = 50
 IMAGE_PATH = 'images'
 
+service = get_authenticated_service()
+
 with open('downloader_payload.json') as f:
     payload = json.loads(f.read())
 
-service = get_authenticated_service()
 
+def download_images(images_queue, payload=payload, dir_path=IMAGE_PATH):
 
-def download_images(images_queue, dir_path=IMAGE_PATH):
-
-    image_id = 1
+    image_id = 10001
 
     while True:
+
         media_list = service.mediaItems().search(body=payload).execute()
 
         if 'mediaItems' not in media_list:  # when no items are found
@@ -29,7 +30,7 @@ def download_images(images_queue, dir_path=IMAGE_PATH):
 
             try:
                 # w16383-h16383 will ensure to download an image at the maximum size.
-                file_name = '{}.jpg'.format(image_id)
+                file_name = '{}.jpg'.format(str(image_id)[1:])
                 file_path = os.path.join(dir_path, file_name)
                 images_queue.put(file_path)
                 urllib.request.urlretrieve(
@@ -55,7 +56,8 @@ def download_images_by_albums(images_queue):
     pageToken = ''
 
     while True:
-        album_list = service.albums().list(pageToken=pageToken, pageSize=ALBUM_PAGE_SIZE).execute()
+        album_list = service.albums().list(
+            pageToken=pageToken, pageSize=ALBUM_PAGE_SIZE).execute()
 
         if 'albums' not in album_list:  # when no items are found
             break
@@ -68,7 +70,8 @@ def download_images_by_albums(images_queue):
                 os.mkdir(dir_path)
             album_id = album['id']
             payload['albumId'] = album_id
-            download_images(images_queue, dir_path)
+            payload['pageToken'] = ''
+            download_images(images_queue, payload, dir_path)
 
         if 'nextPageToken' not in album_list:
             break
