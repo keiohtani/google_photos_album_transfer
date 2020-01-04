@@ -17,7 +17,6 @@ def upload_images(images_queues):
     sleep(300)
     print('Start uploading')
     while not images_queues.empty():
-        sleep(10)
         album_object = images_queues.get()
         title = album_object['title']
         images_queue = album_object['queue']
@@ -26,9 +25,12 @@ def upload_images(images_queues):
         while not images_queue.empty():
             file_name = images_queue.get()
             image_path = os.path.join(dir_path, file_name)
-            upload_image(image_path, dir_path, file_name, album_id)
-            os.remove(image_path)
-            print('uploaded', image_path)
+            if os.path.exists(image_path):
+                upload_image(image_path, dir_path, file_name, album_id)
+                os.remove(image_path)
+                print('uploaded', image_path)
+            else:
+                print(image_path, 'not found')
         print('Completed uploading an album', title)
     print('Completed uploading')
 
@@ -59,7 +61,9 @@ def upload_image(image_file, dir_path, file_name, album_id):
                 sleep(3)
     else:
         # エラーでリトライアウトした場合は終了
-        sys.exit(1)
+        # print('Quitting the app')
+        # sys.exit(1)
+        return -1
     new_item = {'albumId': album_id,
                 'newMediaItems': [{'simpleMediaItem': {'uploadToken': upload_token}}]}
     response = execute_service_api(
@@ -80,9 +84,10 @@ def execute_service_api(service_api, service_name):
             print(e)
             if i < (API_TRY_MAX - 1):
                 sleep(3)
-    else:
+    # else:
         # エラーでリトライアウトした場合は終了
-        sys.exit(1)
+        # print('Quitting the app')
+        # sys.exit(1)
 
 
 def create_album(title):
